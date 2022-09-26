@@ -81,17 +81,17 @@ def sphericalSample(radius, xyzarr):
 
     return points
 
-def makeLigand(file, pointsInPlane=[0,2,3]):
+def makeLigand(file):
     file = "/home/wladerer/github/minis/thf.xyz"
     ligand_arr, ligand_atoms = getInfo(file)
-    ligand_axis = pointsInPlane[0] - ((pointsInPlane[2] + pointsInPlane[3])/2)
+    ligand_axis = ligand_arr[0] - ((ligand_arr[1] + ligand_arr[2])/2)
 
     return ligand_arr, ligand_atoms, ligand_axis
 
 def find_all_sites(molecule_file, ligand_file, radius):
 
-    points = sphericalSample(radius, ligand_file)
     xyzarr, atoms = getInfo(molecule_file)
+    points = sphericalSample(radius, xyzarr)
     ligand_arr, ligand_atoms, ligand_axis = makeLigand(ligand_file)
 
 
@@ -112,8 +112,8 @@ def find_all_sites(molecule_file, ligand_file, radius):
 
 def testAlgorithm(molecule_file, ligand_file, radius):
 
-    points = sphericalSample(radius, ligand_file)
     xyzarr, atoms = getInfo(molecule_file)
+    points = sphericalSample(radius, xyzarr)
 
     lines = []
     for xyz, atom in zip(xyzarr,atoms):
@@ -125,4 +125,3 @@ def testAlgorithm(molecule_file, ligand_file, radius):
 
     writeLines(lines, "../utils/all_points.xyz")
 
-    
