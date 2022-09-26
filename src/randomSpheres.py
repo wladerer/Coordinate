@@ -17,7 +17,6 @@ def rotation_matrix_from_vectors(vec1, vec2):
     return rotation_matrix
 
 
-
 def fibonacci_sphere(samples=100):
 
     points = []
@@ -69,50 +68,61 @@ def set_origin(xyzarr):
     xyzarr = xyzarr - xyzarr[0]
     return xyzarr
 
-file = "../utils/noTHF-molecule.xyz"
+
+def getInfo(file):
+    xyzarr, atoms = readxyz(file) 
+    xyzarr = set_origin(xyzarr)
+
+    return xyzarr, atoms
+
+def sphericalSample(radius, xyzarr):
+    sphere = radius*np.array(fibonacci_sphere())
+    points = validPoints(sphere, xyzarr)
+
+    return points
+
+def makeLigand(file, pointsInPlane=[0,2,3]):
+    file = "/home/wladerer/github/minis/thf.xyz"
+    ligand_arr, ligand_atoms = getInfo(file)
+    ligand_axis = pointsInPlane[0] - ((pointsInPlane[2] + pointsInPlane[3])/2)
+
+    return ligand_arr, ligand_atoms, ligand_axis
+
+def find_all_sites(molecule_file, ligand_file, radius):
+
+    points = sphericalSample(radius, ligand_file)
+    xyzarr, atoms = getInfo(molecule_file)
+    ligand_arr, ligand_atoms, ligand_axis = makeLigand(ligand_file)
 
 
-sphere = 2.5*np.array(fibonacci_sphere())
-xyzarr, atoms = readxyz(file) 
-xyzarr = set_origin(xyzarr)
-points = validPoints(sphere, xyzarr)
+    lines = []
+    for xyz, atom in zip(xyzarr,atoms):
+        lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
+
+    for i,point in enumerate(points):
+        ligand_rot_mat = rotation_matrix_from_vectors(-1*ligand_axis, point)
+        ligand_lines = []
+        for xyz, atom in zip(ligand_arr,ligand_atoms):
+            xyz = ligand_rot_mat @ xyz
+            xyz = xyz + point
+            ligand_lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
+
+            writeLines(lines + ligand_lines, filename=f"../utils/xyz_dump/thf_file{i}.xyz")
 
 
-thf_file = "/home/wladerer/github/minis/thf.xyz"
-thf_arr, thf_atoms = readxyz(thf_file)
-thf_arr = set_origin(thf_arr)
-OC = thf_arr[0] - ((thf_arr[2] + thf_arr[3])/2)
+def testAlgorithm(molecule_file, ligand_file, radius):
 
+    points = sphericalSample(radius, ligand_file)
+    xyzarr, atoms = getInfo(molecule_file)
 
-lines = []
-for xyz, atom in zip(xyzarr,atoms):
+    lines = []
+    for xyz, atom in zip(xyzarr,atoms):
+        lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
-    lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
+    dummy = "XX"
+    for xyz in points:
+        lines.append(f"{dummy:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
-for i,point in enumerate(points):
+    writeLines(lines, "../utils/all_points.xyz")
 
-    thf_rot_mat = rotation_matrix_from_vectors(-1*OC, point)
-    thf_lines = []
-    for xyz, atom in zip(thf_arr,thf_atoms):
-
-        xyz = thf_rot_mat @ xyz
-        xyz = xyz + point
-        thf_lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
-
-        writeLines(lines + thf_lines, filename=f"../utils/xyz_dump/thf_file{i}.xyz")
-
-
-#write dummy file
-
-lines = []
-for xyz, atom in zip(xyzarr,atoms):
-
-    lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
-
-dummy = "XX"
-for xyz in points:
-
-    lines.append(f"{dummy:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
-
-
-writeLines(lines, "../utils/all_points.xyz")
+    
