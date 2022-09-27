@@ -15,6 +15,7 @@ for filename in os.listdir(directory):
         good_count += 1
         good_files.append(f)
 
-
+file_string = []
 for file in good_files:
-    print(file)
+    file_string.append(file)
+    os.system(f"cp {file} ../")
