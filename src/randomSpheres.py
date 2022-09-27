@@ -125,3 +125,24 @@ def testAlgorithm(molecule_file, ligand_file, radius):
 
     writeLines(lines, "../utils/all_points.xyz")
 
+def checkBadness(xyz_file, filter):
+    import numpy
+    xyzarr, atoms = getInfo(xyz_file)
+    dists = distance_matrix(xyzarr)
+    sorted_dists = np.sort(dists)
+
+    averages = []
+    
+    for i,dist in enumerate(sorted_dists):
+        avg = np.average(dist[0:5])
+        averages.append(avg)
+
+    averages = np.sort(averages) 
+
+    shortest_bond_avg = np.average(averages[1:10])
+    if shortest_bond_avg > filter:
+        return True
+    else:
+        return False
+
+
