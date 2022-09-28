@@ -1,14 +1,18 @@
-from cgi import test
 from randomSpheres import *
 # import required module
 import os
 # assign directory
-directory = '../utils/xyz_dump'
+directory = '../utils/'
  
-file = "/home/wladerer/github/Coordinate/utils/noTHF-molecule.xyz"
-testAlgorithm(file, "/home/wladerer/github/Coordinate/utils/thf.xyz", 2.5)
+file = ### put Yb xyz file here
+thf_file = "thf.xyz"
+testAlgorithm(file, thf_file, 2.5)
 
 
+find_all_sites(file, thf_file, 2.5)
+
+
+#you can use this to see if the structures are good on first pass
 # # iterate over files in
 # # that directory
 # good_count = 0
