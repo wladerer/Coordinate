@@ -107,7 +107,7 @@ def find_all_sites(molecule_file, ligand_file, radius):
             xyz = xyz + point
             ligand_lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
-            writeLines(lines + ligand_lines, filename=f"../utils/xyz_dump/thf_file{i}.xyz")
+            writeLines(lines + ligand_lines, filename=f"thf_file{i}.xyz")
 
 
 def testAlgorithm(molecule_file, ligand_file, radius):
@@ -123,7 +123,7 @@ def testAlgorithm(molecule_file, ligand_file, radius):
     for xyz in points:
         lines.append(f"{dummy:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
-    writeLines(lines, "../utils/all_points.xyz")
+    writeLines(lines, "all_points.xyz")
 
 def checkBadness(xyz_file, filter):
     import numpy
