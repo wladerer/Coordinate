@@ -4,7 +4,7 @@ import os
 # assign directory
 directory = '../utils/'
  
-file = ### put Yb xyz file here
+file = "" #your file here
 thf_file = "thf.xyz"
 testAlgorithm(file, thf_file, 2.5)
 find_all_sites(file, thf_file, 2.5)
