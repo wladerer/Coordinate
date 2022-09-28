@@ -7,9 +7,9 @@ directory = '../utils/'
 file = ### put Yb xyz file here
 thf_file = "thf.xyz"
 testAlgorithm(file, thf_file, 2.5)
-
-
 find_all_sites(file, thf_file, 2.5)
+
+os.system(f"tar -cvzf xyzs.tar.gz {directory}")
 
 
 #you can use this to see if the structures are good on first pass
