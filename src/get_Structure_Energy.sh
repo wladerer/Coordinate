@@ -11,6 +11,8 @@ for file in /p/work1/wladerer/uffopt/ltnf/xyz/*; do
     cd UFF-$name
     export name
     echo $(grep "Energy=" $name.out | perl -ne 'print "$ENV{name} | $_"') >> ../UFF-Energies.txt
-    grep "Standard orientation" -A 75 *.out | tail -76 > ../final_g16_structs/${name}.log
+    grep "Standard orientation" -A 75 *.out | tail -76 > ${name}.log
+    obabel -ig16 ${name}.log -oxyz
+    cp ${name}.xyz ../final_g16_structs/
     cd ..
 done
