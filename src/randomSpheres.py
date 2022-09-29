@@ -97,7 +97,7 @@ def find_all_sites(molecule_file, ligand_file, radius):
 
     lines = []
     for xyz, atom in zip(xyzarr,atoms):
-        lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
+        lines.append(f"{atom:<2}{-1:^4}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
     for i,point in enumerate(points):
         ligand_rot_mat = rotation_matrix_from_vectors(-1*ligand_axis, point)
@@ -105,7 +105,7 @@ def find_all_sites(molecule_file, ligand_file, radius):
         for xyz, atom in zip(ligand_arr,ligand_atoms):
             xyz = ligand_rot_mat @ xyz
             xyz = xyz + point
-            ligand_lines.append(f"{atom:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
+            ligand_lines.append(f"{atom:<2}{0:^4}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
             writeLines(lines + ligand_lines, filename=f"thf_file{i}.xyz")
 

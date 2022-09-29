@@ -16,3 +16,5 @@ for file in /p/work1/wladerer/uffopt/ltnf/xyz/*; do
     cp ${name}.xyz ../final_g16_structs/
     cd ..
 done
+
+tar -cvzf final_ltnf_uff.tar.gz final_g16_structs/
