@@ -2,7 +2,6 @@
 
 Coordinate is a suite of tools used to find empty spaces within coordination complexes. It is a very crude approach -- essentially a heuristic based algorithm to find the least sterically hindered spaces within the first coordination sphere.
 
-![Sampled Sphere](single_sphere.png)
 ![Grid of generated structures](grid.png)
 
 ## Features 
