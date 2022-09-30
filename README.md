@@ -9,10 +9,11 @@ Coordinate is a suite of tools used to find empty spaces within coordination com
 - Find sterically unhindered spaces within a coordination complex
 - Create a file to view all potential spaces with dummy atoms (using Avogadro, Molden, etc.)
 - Create all acceptable coordination complexes of a desired molecule - ligand pair and write to an .xyz file
+  - I would like to thank Robert Shaw for making his xyz to numpy converter freely available at [geomConvert](https://github.com/robashaw/geomConvert)
 - Automate TURBOMOLE dft jobs using yaml files (they're like easier to read JSON files)
   - This utility comes mostly from the [turbomoleio](https://github.com/Matgenix/turbomoleio) package maintained by Matgenix SRL
   
-  ## Example of ridft run parameters for a Yb complex
+## Example of ridft run parameters for a Yb complex
   
 ```
 basis: def2-TZVPP
@@ -53,3 +54,4 @@ use_f12: false
 use_f12*: null
 copymo: null
 ```
+
