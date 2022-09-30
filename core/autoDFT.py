@@ -4,6 +4,9 @@ from turbomoleio.input.define import DefineRunner
 import os
 
 def define(file, parameter_file):
+    """
+        Takes xyz file and parameter.yaml file and creates all requisite files for TURBOMOLE calculation
+    """
     
     os.system(f"x2t {file} > coord")
 
@@ -12,5 +15,9 @@ def define(file, parameter_file):
         dr = DefineRunner(parameters=dp)
         dr.run_full()
     
-    # os.system(f'sed -i "s/scforbitalshift  closedshell=.05/scforbitalshift  closedshell=.3 /" control')
+def fixturbo():
+    """
+        fixes a bug often seen in older versions of turbomole where the orbital shift does not update
+    """
+    os.system(f'sed -i "s/scforbitalshift  closedshell=.05/scforbitalshift  closedshell=.3 /" control')
 
