@@ -1,4 +1,4 @@
-##Usage
+#Usage
 
 Provided within this folder is an example of how to easily create a turbomole job and all the requisite files.
 
