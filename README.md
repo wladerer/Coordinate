@@ -14,7 +14,7 @@ Coordinate is a suite of tools used to find empty spaces within coordination com
   
   ## Example of ridft run parameters for a Yb complex
   
-  ```
+```
 basis: def2-TZVPP
 basis_atom: null
 ecp_atom: {yb: ecp-28-mwb}
@@ -52,4 +52,4 @@ unpaired_electrons: null
 use_f12: false
 use_f12*: null
 copymo: null
-  ```
+```
