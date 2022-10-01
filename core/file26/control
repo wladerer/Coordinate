@@ -1,0 +1,97 @@
+$title
+ridft
+$operating system unix
+$symmetry c1 n
+$coord    file=coord
+$user-defined bonds    file=coord
+$atoms
+yb 1                                                                           \
+   basis =yb def2-TZVPP                                                        \
+   ecp   =yb ecp-28-mwb                                                        \
+   jbas  =yb def2-TZVPP
+fe 2                                                                           \
+   basis =fe def2-TZVPP                                                        \
+   jbas  =fe def2-TZVPP
+cl 3                                                                           \
+   basis =cl def2-TZVPP                                                        \
+   jbas  =cl def2-TZVPP
+o  4-5,100                                                                     \
+   basis =o def2-TZVPP                                                         \
+   jbas  =o def2-TZVPP
+s  6-7                                                                         \
+   basis =s def2-TZVPP                                                         \
+   jbas  =s def2-TZVPP
+c  8-47,101-104                                                                \
+   basis =c def2-TZVPP                                                         \
+   jbas  =c def2-TZVPP
+h  48-99,105-112                                                               \
+   basis =h def2-TZVPP                                                         \
+   jbas  =h def2-TZVPP
+$basis    file=basis
+$ecp    file=basis
+$newecp
+$rundimensions
+   dim(fock,dens)=4359007
+   natoms=112
+   nshell=966
+   nbf(CAO)=2950
+   nbf(AO)=2592
+   dim(trafo[SAO<-->AO/CAO])=3669
+   rhfshells=2
+$uhfmo_alpha   file=alpha
+$uhfmo_beta   file=beta
+$uhf
+$alpha shells
+ a       1-233                                  ( 1 )
+$beta shells
+ a       1-232                                  ( 1 )
+$scfiterlimit      400
+$thize     0.10000000E-04
+$thime        5
+$scfdump
+$scfintunit
+ unit=30       size=0        file=twoint
+$scfdiis
+$drvopt
+   cartesian  on
+   basis      off
+   global     off
+   hessian    on
+   dipole     on
+   nuclear polarizability
+$interconversion  off
+   qconv=1.d-7
+   maxiter=25
+$optimize
+   internal   off
+   cartesian  on
+   global     off
+   basis      off   logarithm
+$coordinateupdate
+   dqmax=0.3
+   interpolate  on
+   statistics    5
+$forceupdate
+   ahlrichs numgeo=0  mingeo=3 maxgeo=4 modus=<g|dq> dynamic fail=0.3
+   threig=0.005  reseig=0.005  thrbig=3.0  scale=1.00  damping=0.0
+$forceinit on
+   diag=default
+$energy    file=energy
+$grad    file=gradient
+$forceapprox    file=forceapprox
+$lock off
+$dft
+   functional tpss
+   gridsize   m4
+$scfconv        6
+$scfdamp   start=0.700  step=0.050  min=0.050
+$scforbitalshift  closedshell=.05
+$ricore      500
+$rij
+$jbas    file=auxbasis
+$marij
+$last step     define
+$cosmo
+   epsilon=7.58
+$cosmo_out = out.cosmo
+$end
