@@ -9,7 +9,7 @@ def define():
     """
     
 
-    with open("/home/wladerer/github/Coordinate/utils/parameters.yaml", "r") as fh:
+    with open("parameters.yaml", "r") as fh:
         dp = yaml.load(fh, Loader=yaml.SafeLoader)
         dr = DefineRunner(parameters=dp)
         dr.run_full()
@@ -20,4 +20,3 @@ def fixturbo():
     """
     os.system(f'sed -i "s/scforbitalshift  closedshell=.05/scforbitalshift  closedshell=.3 /" control')
 
-define()

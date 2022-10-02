@@ -45,4 +45,3 @@ for tup in unique_combinations:
     if compareGraphs(tup[0],tup[1]):
         is_iso += 1
 
-print(is_iso)
