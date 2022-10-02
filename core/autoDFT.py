@@ -5,10 +5,9 @@ import os
 
 def define():
     """
-        Takes xyz file and parameter.yaml file and creates all requisite files for TURBOMOLE calculation
+        Takes coord file and parameter.yaml file and creates all requisite files for TURBOMOLE calculation
     """
     
-    # os.system(f"x2t {file} > coord")
 
     with open("/home/wladerer/github/Coordinate/utils/parameters.yaml", "r") as fh:
         dp = yaml.load(fh, Loader=yaml.SafeLoader)
