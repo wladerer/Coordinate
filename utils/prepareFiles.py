@@ -1,4 +1,4 @@
-from ..core.autoDFT import define
+from ..Coordinate.autoDFT import define
 
 file3 = "/home/wladerer/github/Coordinate/core/damp5_converged/file3_damp5_coord"
 file15 = "/home/wladerer/github/Coordinate/core/damp5_converged/file15_damp5_coord"
