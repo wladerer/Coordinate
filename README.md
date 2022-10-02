@@ -13,7 +13,7 @@ TurboCoord is a suite of tools used to find empty spaces within coordination com
 - Automate TURBOMOLE dft jobs using yaml files (they're like easier to read JSON files)
   - This utility comes mostly from the [turbomoleio](https://github.com/Matgenix/turbomoleio) package maintained by Matgenix SRL
   
-## Example of ridft run parameters for a Yb complex
+## Example of ridft run parameters for a Yb complex using the [turbomoleio](https://github.com/Matgenix/turbomoleio) package
   
 ```
 basis: def2-TZVPP
