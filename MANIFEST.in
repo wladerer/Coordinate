@@ -1,0 +1,14 @@
+include *.in
+include *.jpg
+recursive-include Coordinate *.py
+recursive-include Coordinate *.pyc
+recursive-include Coordinate *.yaml
+recursive-include build *.py
+recursive-include dist *.whl
+recursive-include examples *.log
+recursive-include examples *.md
+recursive-include examples *.py
+recursive-include examples *.xyz
+recursive-include utils *.py
+recursive-include utils *.sh
+recursive-include utils *.xyz

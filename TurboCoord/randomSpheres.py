@@ -161,5 +161,3 @@ def checkBadness(xyz_file, filter):
         return True
     else:
         return False
-
-
