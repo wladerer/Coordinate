@@ -1,0 +1,7 @@
+README.md
+setup.py
+core/Coordinate.egg-info/PKG-INFO
+core/Coordinate.egg-info/SOURCES.txt
+core/Coordinate.egg-info/dependency_links.txt
+core/Coordinate.egg-info/requires.txt
+core/Coordinate.egg-info/top_level.txt
