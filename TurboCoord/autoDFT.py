@@ -1,3 +1,4 @@
+from re import L
 from pexpect import popen_spawn
 import yaml 
 from turbomoleio.input.define import DefineRunner
@@ -23,6 +24,22 @@ def define(yaml_file: str ="parameters.yaml", convert_xyz: bool=False, xyz_file:
         dr = DefineRunner(parameters=dp)
         dr.run_full()
     
+
+def restart():
+
+    if os.path.exists("GEO_OPT_FAILED"):
+
+        reply = input("This geometry optimization failed, please consider the parameters and orginal geometry given at the beginning of the optimization \n Your \"coord\" file is likely to be incorrect \n Would you like to continue? [y/n] \n : ")
+        if reply == ("continue" or "yes" or "y" or "Y"):
+            define()
+
+        if reply == ("no" or "stop" or "quit" or "n" or "N"):
+            quit()
+        
+        else:
+            print("invalid response")
+
+
 def fixturbo():
     """
         fixes a bug often seen in older versions of turbomole where the orbital shift does not update
