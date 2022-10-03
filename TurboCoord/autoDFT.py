@@ -13,10 +13,10 @@ def define(yaml_file: str ="parameters.yaml", convert_xyz: bool=False, xyz_file:
 
         Output: alpha, basis, auxbasis, control, coord (iff convert_xyz == True) 
     """
-
+    
     if convert_xyz: 
         
-        os.system(f"x2t {xyz_file} > coord")
+        os.system(f"x2t {xyz_file} > coord") #use the builtin TURBOMOLE command 'x2t' to convert coord
 
     with open(yaml_file, "r") as fh:
         dp = yaml.load(fh, Loader=yaml.SafeLoader)
