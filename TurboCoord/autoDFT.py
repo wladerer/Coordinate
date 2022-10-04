@@ -1,4 +1,4 @@
-from re import L
+import sys
 from pexpect import popen_spawn
 import yaml 
 from turbomoleio.input.define import DefineRunner
@@ -25,19 +25,19 @@ def define(yaml_file: str ="parameters.yaml", convert_xyz: bool=False, xyz_file:
         dr.run_full()
     
 
-def restart():
+def isConverged(dir: str =".") -> bool:
 
     if os.path.exists("GEO_OPT_FAILED"):
-
-        reply = input("This geometry optimization failed, please consider the parameters and orginal geometry given at the beginning of the optimization \n Your \"coord\" file is likely to be incorrect \n Would you like to continue? [y/n] \n : ")
-        if reply == ("continue" or "yes" or "y" or "Y"):
-            define()
-
-        if reply == ("no" or "stop" or "quit" or "n" or "N"):
-            quit()
-        
-        else:
-            print("invalid response")
+        print("This geometry optimization failed, please consider the parameters and orginal geometry given at the beginning of the optimization \n Your \"coord\" file is likely to be incorrect \n Would you like to continue? [y/n] \n : ")
+        return False
+    
+    if os.path.exists("GEO_OPT_RUNNING"):
+        print("Your calculation timed out, consider restarting your calculation")
+        return False
+    
+    else:
+        print("Converged")
+        return True
 
 
 def fixturbo():
@@ -46,3 +46,17 @@ def fixturbo():
     """
     os.system(f'sed -i "s/scforbitalshift  closedshell=.05/scforbitalshift  closedshell=.3 /" control')
 
+
+def nextCycle():
+
+    if isConverged == False:
+        print("It is inadvisable to continue, breaking now")
+        quit()
+    
+    os.system("mkdir next_step ; cd next_step ; cp ../coord . ; cp ../*.pbs ; cp ../parameters.yaml . ; python3 ~/.execs/autoDFT.py define")
+
+
+
+#Allows you to call function in terminal 
+if __name__ == '__main__':
+    globals()[sys.argv[1]]()
