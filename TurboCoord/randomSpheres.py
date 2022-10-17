@@ -1,5 +1,9 @@
-from gcutil import distance_matrix, readxyz
+import json
+
 import numpy as np
+import pandas as pd
+
+
 
 
 def rotation_matrix_from_vectors(vec1, vec2):
@@ -105,12 +109,12 @@ def makeLigand(file = "/home/wladerer/github/minis/thf.xyz"):
 
     return ligand_arr, ligand_atoms, ligand_axis
 
-def find_all_sites(molecule_file, ligand_file, radius):
+def runTurboCoord(molecule_file, ligand_file, radius):
 
     xyzarr, atoms = getInfo(molecule_file)
     points = sphericalSample(radius, xyzarr)
     ligand_arr, ligand_atoms, ligand_axis = makeLigand(ligand_file)
-
+    
 
     lines = []
     for xyz, atom in zip(xyzarr,atoms):
@@ -120,11 +124,13 @@ def find_all_sites(molecule_file, ligand_file, radius):
         ligand_rot_mat = rotation_matrix_from_vectors(-1*ligand_axis, point)
         ligand_lines = []
         for xyz, atom in zip(ligand_arr,ligand_atoms):
-            xyz = ligand_rot_mat @ xyz
-            xyz = xyz + point
+            xyz = (ligand_rot_mat @ xyz) + point
+
             ligand_lines.append(f"{atom:<2}{0:^4}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}")
 
             writeLines(lines + ligand_lines, filename=f"thf_file{i}.xyz")
+
+        
 
 
 def testAlgorithm(molecule_file, ligand_file, radius):
@@ -142,10 +148,24 @@ def testAlgorithm(molecule_file, ligand_file, radius):
 
     writeLines(lines, "all_points.xyz")
 
-def checkBadness(xyz_file, filter):
-    import numpy
-    xyzarr, atoms = getInfo(xyz_file)
-    dists = distance_matrix(xyzarr)
+
+def distance_matrix_from_points(xyzs):
+    """
+    Creates a distance matrix for the xyz array
+    """
+    n_atoms = len(xyzs)
+    dist_mat = np.zeros((n_atoms, n_atoms))
+    for i in range(n_atoms):
+        for j in range(n_atoms):
+            dist_mat[i,j] = np.linalg.norm(xyzs[i] - xyzs[j])
+    return dist_mat
+
+
+
+def checkBadness(xyzs, filter):
+    import numpy as np
+
+    dists = distance_matrix_from_points(xyzs)
     sorted_dists = np.sort(dists)
 
     averages = []
@@ -161,3 +181,36 @@ def checkBadness(xyz_file, filter):
         return True
     else:
         return False
+
+
+def dipole(ligand_xyz):
+    import pandas as pd
+    r, ligand_atoms = getInfo(ligand_xyz)
+
+    ptable = pd.read_csv("/home/wladerer/github/Coordinate/utils/ptable.csv")
+
+    q = [ptable.loc[ptable['Symbol'] == ligand_atom, 'Electronegativity'].values[0] for ligand_atom in ligand_atoms] #overly complicated way to match an e.neg to a symbol
+    
+    mu_x = []
+    mu_y = []
+    mu_z = []
+    dipole = []
+    for i,q_i in enumerate(q): #standard dipole calculation
+        mu = (q_i * r[i])
+        mu_x.append(mu[0])
+        mu_y.append(mu[1])
+        mu_z.append(mu[2])
+        dipole += mu
+
+    ligand_axis = dipole
+
+    return mu_x, mu_y, mu_z, ligand_atoms, ligand_axis
+
+
+def checkfiles(dir):
+    import os
+    files = os.listdir(dir)
+    files = [file for file in files if file.endswith(".xyz")]
+
+    return files
+
