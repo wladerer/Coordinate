@@ -70,11 +70,11 @@ class Ligand(Complex):
 
 class CoordinationComplex(Complex):
 
-    def __init__(self, xyzfile: str, ligand_xyzfile: str, point=None) -> None:
+    def __init__(self, xyzfile: str, ligand_xyzfile: str) -> None:
         super().__init__(xyzfile)
         self.ligand = Ligand(ligand_xyzfile)
-        self.ligand_coords = self.ligand.coords
         self.ligand_axis = self.ligand.ligand_axis
+        self.ligand_coords = self.ligand.coords
         self.ligand_atoms = self.ligand.atoms
         self.ligand_indices = self.ligand.indices
         self.ligand_Atoms = self.ligand.Atoms
@@ -82,25 +82,19 @@ class CoordinationComplex(Complex):
         self.complex_coords = np.concatenate((self.coords, self.ligand_coords))
         self.complex_dists = cdist(self.complex_coords, self.complex_coords)
 
-        def orient_ligand(ligand_xyzfile, point=None):
-            """
-            Orient the ligand to point towards the central atom
-            Points must be chosen from the Sphere object
-            """
-            if point == None:
-                #if no point is given, orient the ligand to point towards the first point on the sphere
-                points = Sphere(ligand_xyzfile, n_points=100, cutoff=1.5).points
-                point = points[0]
-
-            #create a rotation matrix to orient the ligand
-            rotation_matrix = st.rotation_matrix(-1*self.ligand_axis, point)
-            #rotate the ligand and displace the ligand from the central atom
-            oriented_ligand_coords = (rotation_matrix @ self.ligand_coords) + point
 
 
-            return oriented_ligand_coords
+    def orient_ligand(self, point, ligand_axis):
+        """
+        Using the rotation_matrix function to orient the ligand towards the central atom
+        """
+        R_xyz = st.rotation_matrix(self.ligand_axis, -1*point)
+        ligand_coords = (R_xyz @ self.ligand_coords) + point
 
-        self.ligand_coords = orient_ligand(ligand_xyzfile, point) 
+        return ligand_coords
+        
+        self.ligand_coords = self.orient_ligand(self.ligand.coords, point, self.ligand_axis)
+
 
     def rotate_ligand(self, theta, axis):
         """
@@ -152,4 +146,5 @@ class CoordinationComplex(Complex):
             lines = [atom.line for atom in self.Atoms]
             lines.extend([atom.line for atom in self.ligand.Atoms])
             writeLines(lines, filename)
+
 
