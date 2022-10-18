@@ -70,7 +70,7 @@ class Ligand(Complex):
 
 class CoordinationComplex(Complex):
 
-    def __init__(self, xyzfile: str, ligand_xyzfile: str) -> None:
+    def __init__(self, xyzfile: str, ligand_xyzfile: str, point=None) -> None:
         super().__init__(xyzfile)
         self.ligand = Ligand(ligand_xyzfile)
         self.ligand_axis = self.ligand.ligand_axis
@@ -81,20 +81,7 @@ class CoordinationComplex(Complex):
         self.complex_atoms = self.atoms + self.ligand_atoms
         self.complex_coords = np.concatenate((self.coords, self.ligand_coords))
         self.complex_dists = cdist(self.complex_coords, self.complex_coords)
-
-
-
-    def orient_ligand(self, point, ligand_axis):
-        """
-        Using the rotation_matrix function to orient the ligand towards the central atom
-        """
-        R_xyz = st.rotation_matrix(self.ligand_axis, -1*point)
-        ligand_coords = (R_xyz @ self.ligand_coords) + point
-
-        return ligand_coords
-        
-        self.ligand_coords = self.orient_ligand(self.ligand.coords, point, self.ligand_axis)
-
+    
 
     def rotate_ligand(self, theta, axis):
         """
@@ -146,5 +133,4 @@ class CoordinationComplex(Complex):
             lines = [atom.line for atom in self.Atoms]
             lines.extend([atom.line for atom in self.ligand.Atoms])
             writeLines(lines, filename)
-
 

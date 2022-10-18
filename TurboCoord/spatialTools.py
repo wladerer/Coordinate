@@ -44,7 +44,7 @@ def from_xyz(xyzfile: str):
     return coords, atoms, indices, dist_mat
 
 
-def rotation_matrix(vec1, vec2):
+def rotation_matrix(vec1, vec2) -> np.ndarray:
     """ Find the rotation matrix that aligns vec1 to vec2
     vec1 is the ligand axis
     vec2 is the negative of the Yb - O bond
@@ -52,14 +52,13 @@ def rotation_matrix(vec1, vec2):
     """
     a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
     v = np.cross(a, b)
-    c = np.dot(a, b)
-    s = np.linalg.norm(v)
+    c: np.ndarray = np.dot(a, b)
+    s: float = np.linalg.norm(v)
     kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
     rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
     return rotation_matrix
 
-
-def fibonacci_sphere(samples=100):
+def fibonacci_sphere(samples=100) -> list:
     """
     Generates a sphere around the coordination complex
     Number of points is adjustable
@@ -90,7 +89,7 @@ def generateSphere(xyzfile: str, samples: int, cutoff: float=1.26, radius: float
 
     return points
 
-def validPoints(points, coords, cutoff=1.3):
+def validPoints(points, coords, cutoff=1.3) -> tuple[list, list]:
     """
     Tests if one point in sphere is too close to a point in coords, if it is too close, remove the point
     """
@@ -152,6 +151,8 @@ def vector_decomposition(ligand_xyzfile):
 def plot_3d_vectors(*vectors):
     """
     Plots multiple 3d vectors using a plotly image
+
+    vectors:: list of tuples of 3d vectors
     """
     import plotly.graph_objects as go
     fig = go.Figure()
@@ -160,13 +161,16 @@ def plot_3d_vectors(*vectors):
     fig.show()
 
 
-def align_vectors(vec1, vec2):
+def align_vectors(vec1, vec2, translation=0):
     """
     Aligns vec1 with vec2 using a rotation matrix
+
+    vec1:: 3d vector
+    vec2:: 3d vector
     """
 
     mat = rotation_matrix(vec1, vec2)
-    rvec2 = vec2 @ mat
+    rvec2 = vec2 @ mat + translation
 
     return rvec2
 
