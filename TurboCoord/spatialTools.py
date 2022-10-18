@@ -3,7 +3,7 @@ from scipy.spatial.distance import cdist
 
 def set_origin(coords):
     """
-    Sets the first atom in the xyz array as the origin
+    Sets the first atom in the xyz array as the origin.
     It is recommended that you format your xyz file such that the coordination complex is the first atom
     """
     coords = coords - coords[0]
@@ -139,7 +139,7 @@ def plot_complex(xyzfile: str, ligand_xyzfile: str):
 
     fig.show()
 
-def vector_decomposition(ligand_xyzfile):
+def vector_decomposition(ligand_xyzfile: str):
     """
     Decomposes each point of an xyz file into x, y, and z components
     """
@@ -161,7 +161,7 @@ def plot_3d_vectors(*vectors):
     fig.show()
 
 
-def align_vectors(vec1, vec2, translation=0):
+def align_vectors(vec1, vec2, translation: float =0.0):
     """
     Aligns vec1 with vec2 using a rotation matrix
 
@@ -174,3 +174,27 @@ def align_vectors(vec1, vec2, translation=0):
 
     return rvec2
 
+
+def plot_cdist(xyzfile: str, cutoff: float):
+    """
+    Plots the distance between each point in the xyz file using a plotly heat map
+    """
+    import plotly.graph_objects as go
+    import plotly.express as px
+    coords, *_ = from_xyz(xyzfile)
+    dist = cdist(coords, coords)
+    fig = px.imshow(dist)
+    fig.show()
+
+
+def plot_cdist_sphere(xyzfile: str, samples: int, cutoff: float, radius: float = 2.5):
+    """
+    Plots the distance between each point in the xyz file and the sphere using a plotly heat map
+    """
+    import plotly.graph_objects as go
+    import plotly.express as px
+    coords, *_ = from_xyz(xyzfile)
+    sphere = radius*np.array(fibonacci_sphere(samples))
+    dist = cdist(coords, sphere)
+    fig = px.imshow(dist)
+    fig.show()
