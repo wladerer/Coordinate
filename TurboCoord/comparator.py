@@ -1,47 +1,42 @@
-from xyz2graph import MolGraph, to_networkx_graph, to_plotly_figure
 import networkx as nx
 import matplotlib.pyplot as plt
 import networkx.algorithms.isomorphism as iso
 import itertools
 from itertools import permutations
 import os
+from TurboCoord import CoordinationComplex, generateStructures
 
+class MolecularGraph:
+    """
+    Represent the xyz coordinates of a molecule in terms of a graph using networkx
+    """
 
-def graph(file):
-    mg = MolGraph()
-    mg.read_xyz(file)
-    G = to_networkx_graph(mg)
-    return G
+    def __init__(self, CoordinationComplex):
+        super().__init__(CoordinationComplex)
+        self.graph = nx.Graph()
+        self.graph.add_nodes_from(self.complex_atoms)
+        self.graph.add_edges_from(self.get_edges())
+        self.graph = self.graph.to_undirected()
+        self.graph = nx.convert_node_labels_to_integers(self.graph, first_label=0, ordering='default', label_attribute=None)
 
-def compareGraphs(G1,G2):
+    def get_edges(self):
+        """
+        Get the edges of the graph
+        """
+        edges = []
+        for i in range(len(self.complex_atoms)):
+            for j in range(len(self.complex_atoms)):
+                if self.distance_matrix[i][j] < 2.0:
+                    edges.append((self.complex_atoms[i], self.complex_atoms[j]))
+        return edges
 
-    return nx.is_isomorphic(G1, G2)
+    def get_graph(self):
+        return self.graph
 
-
-directory = '/home/wladerer/github/Coordinate/utils/smaller_sample'
-
-graphs = []
-for filename in os.listdir(directory):
-    f = os.path.join(directory, filename)
-    graphs.append(graph(f))
-
-
-unique_combinations = []
- 
-# Getting all permutations of list_1
-# with length of list_2
-permut = itertools.permutations(graphs, len(graphs))
- 
-# zip() is called to pair each permutation
-# and shorter list element into combination
-for comb in permut:
-    zipped = zip(comb, graphs)
-    unique_combinations.append(list(zipped))
-
-
-is_iso = 0
-for tup in unique_combinations:
-    tup = tup[0]
-    if compareGraphs(tup[0],tup[1]):
-        is_iso += 1
-
+    def get_isomorphisms(self, other):
+        """
+        Get the isomorphisms between two graphs
+        """
+        GM = iso.GraphMatcher(self.graph, other.graph)
+        return GM.is_isomorphic()
+    

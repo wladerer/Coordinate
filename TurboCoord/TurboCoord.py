@@ -43,6 +43,10 @@ class Atom:
         return self.frozen_line
 
 class Sphere:
+    """
+    A class that represents a sphere of points around a central atom
+    Mainly used for sampling
+    """
 
     def __init__(self, xyzfile, n_points=100, cutoff=1.5):
 
@@ -57,6 +61,9 @@ class Sphere:
         return f"A sphere with {self.samples} points and a cutoff of {self.cutoff}"
 
 class Complex:
+    """
+    A generic class that encodes atomic coordinates and other useful information
+    """
 
     def __init__(self, xyzfile) -> None:
         
@@ -73,6 +80,9 @@ class Complex:
         return self.as_dataframe().__str__()
 
 class Ligand(Complex):
+    """
+    Represents a ligand
+    """
 
     #currently only works for thf
     def __init__(self, xyzfile) -> None:

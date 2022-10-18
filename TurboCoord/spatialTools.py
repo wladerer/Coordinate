@@ -198,3 +198,62 @@ def plot_cdist_sphere(xyzfile: str, samples: int, cutoff: float, radius: float =
     dist = cdist(coords, sphere)
     fig = px.imshow(dist)
     fig.show()
+
+def rotate(coords, theta):
+    """
+    Rotate a set of coordinates around an axis by an angle theta
+    """
+    
+    #create an arbitrary 3d rotation matrix
+    R_z = np.array([[np.cos(theta), -np.sin(theta), 0], [np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+    R_y = np.array([[np.cos(theta), 0, np.sin(theta)], [0, 1, 0], [-np.sin(theta), 0, np.cos(theta)]])
+    R_x = np.array([[1, 0, 0], [0, np.cos(theta), -np.sin(theta)], [0, np.sin(theta), np.cos(theta)]])
+    
+    #create a dictionary representing the rotation matrices
+    rotations = {'x': R_x, 'y': R_y, 'z': R_z}
+    R = rotations[np.random.choice(['x', 'y', 'z'])] #choose a random rotation matrix
+    
+    #rotate the coordinates
+    rotated_coords = coords @ R
+    
+    return rotated_coords
+
+
+def rotate_ligand_away(xyzfile: str, ligand_xyzfile: str, theta: float):
+    """
+    Rotates the ligand away from the coordination complex by an angle theta
+    """
+    coords, *_ = from_xyz(xyzfile)
+    ligand_coords, *_ = from_xyz(ligand_xyzfile)
+    
+    #calculate the distance between the ligand atoms and the coordination complex atoms
+    dist = cdist(ligand_coords, coords)
+
+    #rotate the ligand away from the coordination complex until the average cdist is minimized
+    min_dist = np.inf
+    for angle in np.linspace(0, theta, 100):
+        rotated_coords = rotate(ligand_coords, angle)
+        new_dist = cdist(rotated_coords, coords)
+        if new_dist.mean() < min_dist:
+            min_dist = new_dist.mean()
+            min_coords = rotated_coords
+    
+    return min_coords
+    
+
+def plot_rotation(xyzfile: str, ligand_xyzfile: str, theta: float):
+    """
+    Plots the rotation of the ligand away from the coordination complex
+    """
+    import plotly.graph_objects as go
+    coords, *_ = from_xyz(xyzfile)
+    ligand_coords, *_ = from_xyz(ligand_xyzfile)
+    
+    min_coords = rotate_ligand_away(xyzfile, ligand_xyzfile, theta)
+    
+    #plot the rotation
+    fig = go.Figure(data=[go.Scatter3d(x=coords[:,0], y=coords[:,1], z=coords[:,2], mode='markers', marker=dict(size=4, color='red'))])
+    fig.add_trace(go.Scatter3d(x=ligand_coords[:,0], y=ligand_coords[:,1], z=ligand_coords[:,2], mode='markers', marker=dict(size=4, color='blue')))
+    fig.add_trace(go.Scatter3d(x=min_coords[:,0], y=min_coords[:,1], z=min_coords[:,2], mode='markers', marker=dict(size=4, color='green')))
+    fig.show()
+
