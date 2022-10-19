@@ -24,22 +24,6 @@ def define(yaml_file: str ="parameters.yaml", convert_xyz: bool=False, xyz_file:
         dr = DefineRunner(parameters=dp)
         dr.run_full()
     
-
-def isConverged(dir: str =".") -> bool:
-
-    if os.path.exists("GEO_OPT_FAILED"):
-        print("This geometry optimization failed, please consider the parameters and orginal geometry given at the beginning of the optimization \n Your \"coord\" file is likely to be incorrect \n Would you like to continue? [y/n] \n : ")
-        return False
-    
-    if os.path.exists("GEO_OPT_RUNNING"):
-        print("Your calculation timed out, consider restarting your calculation")
-        return False
-    
-    else:
-        print("Converged")
-        return True
-
-
 def fixturbo():
     """
         fixes a bug often seen in older versions of turbomole where the orbital shift does not update
@@ -56,6 +40,78 @@ def nextCycle():
     os.system("mkdir next_step ; cd next_step ; cp ../coord . ; cp ../*.pbs ; cp ../parameters.yaml . ; python3 ~/.execs/autoDFT.py define")
 
 
+def autoSubmit(dir: str="."):
+    """
+    Checks each directory to see if a calculation has been completeed, and if so, creates a new directory run the next job
+    """
+    #iterate over each directory in the current directory
+    for subdir in os.listdir(dir):
+        #if the directory is a directory
+        if os.path.isdir(subdir):
+            #change to the directory
+            os.chdir(subdir)
+            #check if the calculation has converged
+            if isConverged():
+                #summarize the results
+                summarize()
+                #archive the files
+                archive()
+                #if so, create a new directory and run the next job
+                nextCycle()
+            #change back to the original directory
+            os.chdir("..")
+
+def isConverged():
+    """
+    Checks current folder to see if the file "GEO_OPT_CONVERGED" exists
+    """
+    if os.path.exists("GEO_OPT_FAILED"):
+        print("This geometry optimization failed, please consider the parameters and orginal geometry given at the beginning of the optimization")
+    
+    if os.path.exists("GEO_OPT_RUNNING"):
+        print("Your calculation timed out, consider restarting your calculation")
+
+    return os.path.exists("GEO_OPT_CONVERGED")
+
+def nextCycle():
+    """
+    Creates a new directory and runs the next job
+    """
+    os.system("mkdir next_step ; cd next_step ; cp ../coord . ; cp ../*.pbs ; cp ../parameters.yaml . ; python3 ~/.execs/autoDFT.py define")
+
+
+def archive():
+    """
+    Archives coord, energy, control, and parameters.yaml files in the current directory
+    """
+    os.system("mkdir archive ; cp coord energy control parameters.yaml archive")
+
+
+def summarize():
+    """
+    Summarizes the results of the optimization
+    """
+    
+    #get the energy of the final geometry in the energy file
+    with open("energy", "r") as fh:
+        energy = fh.readlines()[-1].split()[0]
+    
+    #get the name of the current directory
+    name = os.getcwd().split("/")[-1]
+
+    #convert the coord file to xyz format and name it after the current directory
+    os.system(f"t2x coord > {name}.xyz")
+
+    #get the total scf cycles and time of the calculation from the control file
+    with open("control", "r") as fh:
+        time = fh.readlines()[0].split()[1]
+        cycles = fh.readlines()[1].split()[1]
+
+    #print the results
+    print(f"Your final energy is {energy} Hartree")
+    print(f"Your final geometry is in the file final_geometry.xyz")
+    print(f"Your calculation took {time} seconds and {cycles} cycles")
+        
 
 #Allows you to call function in terminal 
 if __name__ == '__main__':
