@@ -30,6 +30,7 @@ class Atom:
 
     def __init__(self, xyz, atom_type, index):
         self.point = xyz
+        self.coords = xyz
         self.x = xyz[0]
         self.y = xyz[1]
         self.z = xyz[2]
@@ -117,8 +118,9 @@ class CoordinationComplex(Complex):
         new_vecs = [ mat @ coord + point for coord in ligand_coords]
         ligand_coords = np.reshape(new_vecs, (len(new_vecs),3)) #rotate the ligand around the central atom and translate
 
-        self.ligand_coords = ligand_coords
-        return self.ligand_coords
+        setattr(self, 'ligand_coords', ligand_coords) #set the new coordinates
+
+        return self
 
 
     def plot_CoordinationComplex(self, point=None):
@@ -214,5 +216,20 @@ def generateStructures(xyzfile: str, ligand_xyzfile: str) -> list[CoordinationCo
     return structures
 
 
+def filterStructures(structures: list[CoordinationComplex], cutoff_distance: float) -> list[CoordinationComplex]:
+    '''
+    Filters structures that have atoms too close to other atoms
+    '''
+    #get distances between all atoms in the complex
+    distances = [distance(structures[i].Atoms[j], structures[i].Atoms[k]) for i in range(len(structures)) for j in range(len(structures[i].Atoms)) for k in range(len(structures[i].Atoms)) if j != k]
+    #get the indices of the structures with distances less than the cutoff distance
+    indices = [i for i in range(len(structures)) if any([distances[i*len(structures[i].Atoms) + j*len(structures[i].Atoms) + k] < cutoff_distance for j in range(len(structures[i].Atoms)) for k in range(len(structures[i].Atoms)) if j != k])]
+    #filter the structures
+    structures = [structures[i] for i in range(len(structures)) if i not in indices]
+    return structures
 
-
+def distance(atom1: Atom, atom2: Atom) -> float:
+    """
+    Calculates the distance between two atoms
+    """
+    return np.linalg.norm(atom1.coords - atom2.coords)
