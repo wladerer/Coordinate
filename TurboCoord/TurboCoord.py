@@ -16,6 +16,7 @@ def writeLines(lines, filename="xyzs.xyz"):
         for line in lines:
             f.write(f"{line}\n")
 
+
 class Atom:
     """
     A class that represents an atom in a molecule
@@ -65,10 +66,13 @@ class Complex:
     A generic class that encodes atomic coordinates and other useful information
     """
 
-    def __init__(self, xyzfile) -> None:
+    def __init__(self, coords, atoms, indices, dists) -> None:
         
         #Unpack the xyz file
-        self.coords, self.atoms, self.indices, self.dists = st.from_xyz(xyzfile)
+        self.coords = coords
+        self.atoms = atoms
+        self.indices = indices
+        self.dists = dists
         #Populate the complex with atom objects
         self.Atoms = [Atom(self.coords[i], self.atoms[i], self.indices[i]) for i in range(len(self.atoms))]
 
@@ -85,16 +89,16 @@ class Ligand(Complex):
     """
 
     #currently only works for thf
-    def __init__(self, xyzfile) -> None:
-        super().__init__(xyzfile)
+    def __init__(self, coords, atoms, indices, dists) -> None:
+        super().__init__(coords, atoms, indices, dists)
         self.ligand_axis = self.coords[0] - ((self.coords[1] + self.coords[2])/2) #this needs to be changed later
 
 
 class CoordinationComplex(Complex):
 
-    def __init__(self, xyzfile: str, ligand_xyzfile: str) -> None:
-        super().__init__(xyzfile)
-        self.ligand = Ligand(ligand_xyzfile)
+    def __init__(self, coords, atoms, indices, dists, ligand: Ligand) -> None:
+        super().__init__(coords, atoms, indices, dists)
+        self.ligand = ligand
         self.ligand_axis = self.ligand.ligand_axis
         self.ligand_coords = self.ligand.coords
         self.ligand_atoms = self.ligand.atoms
@@ -117,8 +121,11 @@ class CoordinationComplex(Complex):
         new_vecs = [ mat @ coord + point for coord in ligand_coords]
         ligand_coords = np.reshape(new_vecs, (len(new_vecs),3)) #rotate the ligand around the central atom and translate
 
-        self.ligand_coords = ligand_coords
-        return self.ligand_coords
+        #create a new ligand object and re-assign it to the complex
+        new_ligand = Ligand(ligand_coords, self.ligand_Atoms, self.ligand_indices, self.dists)
+        self.ligand = new_ligand
+        
+        return self
 
 
     def plot_CoordinationComplex(self, point=None):
@@ -141,36 +148,6 @@ class CoordinationComplex(Complex):
             
             fig.show()                    
         
-
-    def rotate_ligand(self, theta, axis):
-        """
-        Rotates the ligand around an axis by an angle theta
-        """
-        self.ligand_coords = st.rotate(self.ligand_coords, theta, axis)
-        self.ligand.axis = st.rotate(self.ligand.axis, theta, axis)
-        self.ligand.Atoms = [Atom(self.ligand_coords[i], self.ligand.atoms[i], self.ligand.indices[i]) for i in range(len(self.ligand.atoms))]
-
-    def rotate(self, theta, axis):
-        """
-        Rotates the complex around an axis by an angle theta
-        """
-        self.coords = st.rotate(self.coords, theta, axis)
-        self.ligand_coords = st.rotate(self.ligand_coords, theta, axis)
-        self.ligand.axis = st.rotate(self.ligand.axis, theta, axis)
-        self.axis = st.rotate(self.axis, theta, axis)
-        self.Atoms = [Atom(self.coords[i], self.atoms[i], self.indices[i]) for i in range(len(self.atoms))]
-        self.ligand.Atoms = [Atom(self.ligand_coords[i], self.ligand.atoms[i], self.ligand.indices[i]) for i in range(len(self.ligand.atoms))]
-
-    def translate(self, vector):
-        """
-        Translates the complex by a vector
-        """
-        self.coords = st.translate(self.coords, vector)
-        self.ligand_coords = st.translate(self.ligand_coords, vector)
-        self.ligand.axis = st.translate(self.ligand.axis, vector)
-        self.axis = st.translate(self.axis, vector)
-        self.Atoms = [Atom(self.coords[i], self.atoms[i], self.indices[i]) for i in range(len(self.atoms))]
-        self.ligand.Atoms = [Atom(self.ligand_coords[i], self.ligand.atoms[i], self.ligand.indices[i]) for i in range(len(self.ligand.atoms))]
 
     def __str__(self) -> str:
         return f"Coordination Complex with {len(self.atoms)} atoms and {len(self.ligand.atoms)} ligand atoms"

@@ -1,11 +1,20 @@
-from better_turbo import *
+from TurboCoord import *
+import spatialTools as st
 
-file = "/home/wladerer/github/Coordinate/utils/s-bridge-thf-def2-TZVPP.xyz"
-thf_file = "/home/wladerer/github/Coordinate/utils/thf.xyz"
-test = CoordinationComplex(file, thf_file)
+file = "/Users/wladerer/github/Coordinate/utils/s-bridge-thf-def2-TZVPP.xyz"
+thf_file = "/Users/wladerer/github/Coordinate/utils/thf.xyz"
+molecule_info = st.from_xyz(file)
+ligand_info = st.from_xyz(file)
+
+ligand = Ligand(*ligand_info)
+test = CoordinationComplex(*molecule_info, ligand)
 sphere = Sphere(file, 100, 1.5)
 
-point = sphere.valid_points[0]
-test.orient_ligand(point)
-test.plot_CoordinationComplex(point)
+for i,point in enumerate(sphere.valid_points):
+    new = test.orient_ligand(point)
+    new.save(filename=f"s-bridge_{i}")
+
+
+
+
 
