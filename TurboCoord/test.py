@@ -1,20 +1,13 @@
 from TurboCoord import *
 import spatialTools as st
 
-file = "/Users/wladerer/github/Coordinate/utils/s-bridge-thf-def2-TZVPP.xyz"
-thf_file = "/Users/wladerer/github/Coordinate/utils/thf.xyz"
-molecule_info = st.from_xyz(file)
-ligand_info = st.from_xyz(file)
+file = "/home/wladerer/github/Coordinate/utils/s-bridge-thf-def2-TZVPP.xyz"
+thf_file = "/home/wladerer/github/Coordinate/utils/thf.xyz"
 
-ligand = Ligand(*ligand_info)
-test = CoordinationComplex(*molecule_info, ligand)
-sphere = Sphere(file, 100, 1.5)
+complex = Complex.from_xyz(file, thf_file)
+points = Sphere(file).valid_points
+ligand_axis = complex.ligand.coords[0] - ( complex.ligand.coords[1] + complex.ligand.coords[2] ) / 2
 
-for i,point in enumerate(sphere.valid_points):
-    new = test.orient_ligand(point)
-    new.save(filename=f"s-bridge_{i}")
-
-
-
-
-
+for i,point in enumerate(points):
+    complex.orient_ligand(point, ligand_axis)
+    complex.to_xyz(f"s-bridge_{i}.xyz", freeze = True)

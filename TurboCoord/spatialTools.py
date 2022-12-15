@@ -38,10 +38,7 @@ def from_xyz(xyzfile: str):
     #set the origin to the first atom
     coords = set_origin(coords)
         
-    #Finally, find the distance array
-    dist_mat = cdist(coords, coords) #cdist is a function from scipy
-
-    return coords, atoms, indices, dist_mat
+    return coords, atoms, indices 
 
 
 def rotation_matrix(vec1, vec2) -> np.ndarray:

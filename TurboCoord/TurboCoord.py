@@ -3,45 +3,8 @@ import spatialTools as st
 import pandas as pd
 from scipy.spatial.distance import cdist
 
-
-def writeLines(lines, filename="xyzs.xyz"):
-    """
-    Writes generated strings to an xyz file
-    """
-    n_lines = len(lines)
-    with open(filename, 'w') as f:
-        
-        f.write(f"{n_lines}\n\n") #create header for xyz file
-
-        for line in lines:
-            f.write(f"{line}\n")
-
-
-class Atom:
-    """
-    A class that represents an atom in a molecule
-
-    atom_type: str
-        The element of the atom
-    xyz: np.ndarray
-        The xyz coordinates of the atom
-    index: int
-        The index of the atom in the xyz file
-    """
-
-    def __init__(self, xyz, atom_type, index):
-        self.point = xyz
-        self.x = xyz[0]
-        self.y = xyz[1]
-        self.z = xyz[2]
-        self.index = index
-        self.element: str = atom_type
-        self.frozen_line = f"{self.element:<2}{-1:^4}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}"
-        self.labile_line = f"{self.element:<2}{0:^4}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}"
-        self.line = f"{self.element:<2}{xyz[0]:>15.5f}{xyz[1]:>15.5f}{xyz[2]:>15.5f}"
-    
-    def __str__(self) -> str:
-        return self.frozen_line
+# a molecule is made from atoms - a complex is made from two molecules - therefore we need to 
+# faithfully represent atoms, molecules, and complexes
 
 class Sphere:
     """
@@ -61,135 +24,107 @@ class Sphere:
     def __str__(self) -> str:
         return f"A sphere with {self.samples} points and a cutoff of {self.cutoff}"
 
-class Complex:
-    """
-    A generic class that encodes atomic coordinates and other useful information
-    """
 
-    def __init__(self, coords, atoms, indices, dists) -> None:
-        
-        #Unpack the xyz file
-        self.coords = coords
+class Atom:
+
+    def __init__(self, element: str, coordinates: np.ndarray) -> None:
+        self.element = element
+        self.coordinates = coordinates
+        self.x = coordinates[0]
+        self.y = coordinates[1]
+        self.z = coordinates[2]
+    
+    def update_position(self, new_coordinates: np.ndarray):
+        self.coordinates = new_coordinates
+        self.x = new_coordinates[0]
+        self.y = new_coordinates[1]
+        self.z = new_coordinates[2]
+
+    def __repr__(self) -> str:
+        return f"Atom of type {self.element} located at {self.x},{self.y},{self.z}"
+
+class Molecule:
+
+    def __init__(self, atoms: list[Atom]) -> None:
         self.atoms = atoms
-        self.indices = indices
-        self.dists = dists
-        #Populate the complex with atom objects
-        self.Atoms = [Atom(self.coords[i], self.atoms[i], self.indices[i]) for i in range(len(self.atoms))]
+        self.elements = [atom.element for atom in atoms]
+        self.coords = [atom.coordinates for atom in atoms]
 
+    #create a method that can be used to create a molecule from an xyz file
+    @classmethod
+    def from_xyz(cls, filename: str):
+        coords, labels, _ = st.from_xyz(filename)
+        atoms = [Atom(element, coordinates) for element, coordinates in zip(labels, coords)]
+        return cls(atoms)
+
+    def __repr__(self) -> str:
+        return f"A molecule with {len(self.atoms)} atoms and a composition of {set(self.elements)}"
+         
     def as_dataframe(self):
-        #combine all the data into a pandas dataframe
-        return pd.DataFrame({'atom': self.atoms, 'x': self.coords[:, 0], 'y': self.coords[:, 1], 'z': self.coords[:, 2]})
+        df = pd.DataFrame(self.coords, columns = ['x', 'y', 'z'])
+        df['element'] = self.elements
+        return df
+    
 
-    def __str__(self): #honestly, this is the nicest way to print the complex
-        return self.as_dataframe().__str__()
+class Complex:
 
-class Ligand(Complex):
-    """
-    Represents a ligand
-    """
+    def __init__(self, substrate: Molecule, ligand: Molecule) -> None:
+        self.substrate: Molecule = substrate
+        self.ligand: Molecule = ligand
+        self.atoms: list[Atom] = substrate.atoms + ligand.atoms
+        self.coords: list[np.ndarray] = substrate.coords + ligand.coords
 
-    #currently only works for thf
-    def __init__(self, coords, atoms, indices, dists) -> None:
-        super().__init__(coords, atoms, indices, dists)
-        self.ligand_axis = self.coords[0] - ((self.coords[1] + self.coords[2])/2) #this needs to be changed later
+    
+    @classmethod
+    def from_xyz(cls, substrate_file: str, ligand_file: str):
+        substrate = Molecule.from_xyz(substrate_file)
+        ligand = Molecule.from_xyz(ligand_file)
+        return cls(substrate, ligand)
 
-
-class CoordinationComplex(Complex):
-
-    def __init__(self, coords, atoms, indices, dists, ligand: Ligand) -> None:
-        super().__init__(coords, atoms, indices, dists)
-        self.ligand = ligand
-        self.ligand_axis = self.ligand.ligand_axis
-        self.ligand_coords = self.ligand.coords
-        self.ligand_atoms = self.ligand.atoms
-        self.ligand_indices = self.ligand.indices
-        self.ligand_Atoms = self.ligand.Atoms
-        
-        
-        self.complex_atoms = self.atoms + self.ligand_atoms
-        self.complex_coords = np.concatenate((self.coords, self.ligand_coords))
-        self.distance_matrix = cdist(self.complex_coords, self.complex_coords)
-
-    def orient_ligand(self, point):
+    def __repr__(self) -> str:
+        return f"A complex with {len(self.substrate.atoms)} substrate atoms and {len(self.ligand.atoms)} ligand atoms"
+    
+    
+    def orient_ligand(self, point, ligand_axis: np.ndarray):
         """
         Orients the ligand axis so that it is pointing towards the central atom
         """
-        ligand_axis = self.ligand_axis #this is the axis of the ligand
-        ligand_coords = self.ligand_coords #these are the coordinates we must rotate
 
         mat = st.rotation_matrix(ligand_axis, point) #get the rotation matrix
-        new_vecs = [ mat @ coord + point for coord in ligand_coords]
-        ligand_coords = np.reshape(new_vecs, (len(new_vecs),3)) #rotate the ligand around the central atom and translate
+        new_vecs = [ mat @ coord + point for coord in self.ligand.coords]
+        self.ligand.coords = np.reshape(new_vecs, (len(new_vecs),3)) #rotate the ligand around the central atom and translate
+        #update the coordinates of the ligand atoms
+        for atom, coord in zip(self.ligand.atoms, self.ligand.coords):
+            atom.update_position(coord)
 
-        #create a new ligand object and re-assign it to the complex
-        new_ligand = Ligand(ligand_coords, self.ligand_Atoms, self.ligand_indices, self.dists)
-        self.ligand = new_ligand
-        
         return self
+    
+    def to_xyz(self, filename: str = f"complex.xyz", freeze = False):
 
+        substrate_atoms = self.substrate.atoms
+        ligand_atoms = self.ligand.atoms
+        n_atoms = len(substrate_atoms) + len(ligand_atoms)
 
-    def plot_CoordinationComplex(self, point=None):
-        import plotly.graph_objects as go
-        if point is None:
+        if freeze == False:
 
-            #plot the complex and ligand atoms separately in a plotly scatter plot
-            fig = go.Figure(data=[go.Scatter3d(x=self.coords[:, 0], y=self.coords[:, 1], z=self.coords[:, 2], mode='markers', marker=dict(size=2, color='blue')),
-                                go.Scatter3d(x=self.ligand_coords[:, 0], y=self.ligand_coords[:, 1], z=self.ligand_coords[:, 2], mode='markers', marker=dict(size=2, color='red'))])
-            
-            fig.show()
-        
-        if point is not None:
+            with open(filename, 'w') as file:
+                file.write(f"{n_atoms}\n\n")
 
-            #rotate coordinates with respect to the point specified
-            self.orient_ligand(point)
-            #plot the complex and ligand atoms separately in a plotly scatter plot
-            fig = go.Figure(data=[go.Scatter3d(x=self.coords[:, 0], y=self.coords[:, 1], z=self.coords[:, 2], mode='markers', marker=dict(size=2, color='blue')),
-                                go.Scatter3d(x=self.ligand_coords[:, 0], y=self.ligand_coords[:, 1], z=self.ligand_coords[:, 2], mode='markers', marker=dict(size=2, color='red'))])
-            
-            fig.show()                    
-        
+                for atom in self.atoms:
+                    line = f"{atom.element:<2}{atom.x:>15.5f}{atom.y:>15.5f}{atom.z:>15.5f}\n"
+                    file.write(line)
 
-    def __str__(self) -> str:
-        return f"Coordination Complex with {len(self.atoms)} atoms and {len(self.ligand.atoms)} ligand atoms"
-
-    def save(self, filename=f"coordination_complex.xyz", freeze_ligand=False):
-        """
-        Saves the complex to an xyz file
-        """
-        
-        if freeze_ligand:
-
-            lines = [atom.labile_line for atom in self.Atoms]
-            #replace the ligand line with the frozen ligand line
-            lines.extend([self.Atoms[i].frozen_line if i in self.ligand.indices else self.Atoms[i].line for i in range(len(self.Atoms))])
-            writeLines(lines, filename)
-                
         else:
-            
-            lines = [atom.line for atom in self.Atoms]
-            lines.extend([atom.line for atom in self.ligand.Atoms])
-            writeLines(lines, filename)
 
+            with open(filename, 'w') as file:
+                file.write(f"{n_atoms}\n\n")
 
-    def as_dataframe(self):
-        """
-        combine all the coordination complex attributes into a pandas dataframe
-        """
-        import pandas as pd 
-        return pd.DataFrame({'atom': self.complex_atoms, 'index': self.complex_indices, 'x': self.complex_coords[:, 0], 'y': self.complex_coords[:, 1], 'z': self.complex_coords[:, 2]})
+                for atom in substrate_atoms:
+                    line = f"{atom.element:<2}{0:^4}{atom.x:>15.5f}{atom.y:>15.5f}{atom.z:>15.5f}\n"
+                    file.write(line)
 
-
-def generateStructures(xyzfile: str, ligand_xyzfile: str) -> list[CoordinationComplex]:
-    """
-    Generates a list of CoordinationComplex objects from an xyz file
-    Returns a list of CoordinationComplex objects
-    """
-    complex = CoordinationComplex(xyzfile, ligand_xyzfile) #generate a sampling sphere around the central atom
-    points = Sphere(xyzfile, 100, 1.5).valid_points #collect only the valid points
-    structures = [complex.orient_ligand(point) for point in points] #create a list of structures with the ligand oriented around the central atom
-
-    return structures
-
-
+                for atom in ligand_atoms:
+                    line = f"{atom.element:<2}{-1:^4}{atom.x:>15.5f}{atom.y:>15.5f}{atom.z:>15.5f}\n"
+                    file.write(line)
 
 
