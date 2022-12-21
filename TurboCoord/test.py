@@ -6,8 +6,8 @@ thf_file = "/home/wladerer/github/Coordinate/utils/thf.xyz"
 
 complex = Complex.from_xyz(file, thf_file)
 points = Sphere(file).valid_points
-ligand_axis = complex.ligand.coords[0] - ( complex.ligand.coords[1] + complex.ligand.coords[2] ) / 2
+ligand_axis = complex.ligand.coords[0] - ( complex.ligand.coords[2] + complex.ligand.coords[3] ) / 2
 
 for i,point in enumerate(points):
-    complex.orient_ligand(point, ligand_axis)
-    complex.to_xyz(f"s-bridge_{i}.xyz", freeze = True)
+   complex.orient_ligand(ligand_axis)
+   complex.to_xyz(f"s-bridge_{i}.xyz", freeze = False)
