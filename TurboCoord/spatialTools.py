@@ -83,6 +83,19 @@ def rotate_towards_origin(matrix: np.ndarray) -> np.ndarray:
     return np.dot(rotation_matrix, matrix)
 
 
+def rotation_matrix(vec1, vec2) -> np.ndarray:
+    """ Find the rotation matrix that aligns vec1 to vec2
+    vec1 is the ligand axis
+    vec2 is the negative of the Yb - O bond
+    returns a transform matrix (3x3) which when applied to vec1, aligns it with vec2.
+    """
+    a, b = (vec1 / np.linalg.norm(vec1)).reshape(3), (vec2 / np.linalg.norm(vec2)).reshape(3)
+    v = np.cross(a, b)
+    c: np.ndarray = np.dot(a, b)
+    s: float = np.linalg.norm(v)
+    kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
+    return rotation_matrix
 
 
 

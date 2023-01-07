@@ -35,6 +35,7 @@ class Atom:
         self.z = coordinates[2]
     
     def update_position(self, new_coordinates: np.ndarray):
+
         self.coordinates = new_coordinates
         self.x = new_coordinates[0]
         self.y = new_coordinates[1]
@@ -85,20 +86,32 @@ class Complex:
         return f"A complex with {len(self.substrate.atoms)} substrate atoms and {len(self.ligand.atoms)} ligand atoms"
     
     
-    def orient_ligand(self, ligand_axis: np.ndarray):
+    def orient_ligand(self, ligand_axis: np.ndarray, point: np.ndarray):
         """
         Orients the ligand axis so that it is pointing towards the central atom
         """
 
-        new_ligand_coords = st.rotate_object_towards_origin(self.ligand.coords, ligand_axis)
-        self.ligand.coords = new_ligand_coords
-        print(new_ligand_coords)
+        yb_pos = self.substrate.atoms[0].coordinates
+        o_pos = self.ligand.atoms[0].coordinates
+        yb_o_vector = yb_pos - point
+        rot_mat = st.rotation_matrix(ligand_axis, point)
 
+        self.ligand.coords = [(rot_mat @ coord ) for coord in self.ligand.coords]
+        self.ligand.coords = self.ligand.coords + point
+        self.update_coords()
+        
         return self
 
-    def update_ligand_coords(self):
+    
+    def update_coords(self):
+
         for atom, coord in zip(self.ligand.atoms, self.ligand.coords):
             atom.update_position(coord)
+        
+        for atom in self.ligand.atoms:  
+            print(atom.coordinates)
+        print("aaa", self.ligand.coords)
+
     
     def to_xyz(self, filename: str = f"complex.xyz", freeze = False):
 
