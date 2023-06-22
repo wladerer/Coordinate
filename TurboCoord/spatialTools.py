@@ -41,6 +41,48 @@ def from_xyz(xyzfile: str):
     return coords, atoms, indices 
 
 
+
+def angle_between_vectors(v1, v2):
+    """
+    Calculate the angle between two vectors in radians.
+    """
+    # Calculate the dot product between the two vectors
+    dot = np.dot(v1, v2)
+
+    # Calculate the magnitude (length) of each vector
+    magnitude_v1 = np.sqrt(np.dot(v1, v1))
+    magnitude_v2 = np.sqrt(np.dot(v2, v2))
+
+    # Calculate the cosine of the angle between the two vectors
+    cosine = dot / (magnitude_v1 * magnitude_v2)
+
+    # Calculate the angle in radians
+    angle = np.arccos(cosine)
+
+    return angle
+
+
+
+def rotate_towards_origin(matrix: np.ndarray) -> np.ndarray:
+    """
+    Rotate a 3D matrix such that a specific axis is pointing towards the origin.
+    
+    Parameters:
+    matrix: The 3D matrix to rotate, as a NumPy array of shape (3, 3).
+    
+    Returns:
+    The rotated matrix, as a NumPy array of shape (3, 3).
+    """
+    # Calculate the SVD of the matrix
+    U, S, V = np.linalg.svd(matrix)
+    
+    # Construct the rotation matrix from the left singular vectors (U)
+    rotation_matrix = U
+    
+    # Rotate the matrix
+    return np.dot(rotation_matrix, matrix)
+
+
 def rotation_matrix(vec1, vec2) -> np.ndarray:
     """ Find the rotation matrix that aligns vec1 to vec2
     vec1 is the ligand axis
@@ -54,6 +96,8 @@ def rotation_matrix(vec1, vec2) -> np.ndarray:
     kmat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
     rotation_matrix = np.eye(3) + kmat + kmat.dot(kmat) * ((1 - c) / (s ** 2))
     return rotation_matrix
+
+
 
 def fibonacci_sphere(samples=100) -> list:
     """
