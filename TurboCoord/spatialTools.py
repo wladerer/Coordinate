@@ -183,6 +183,26 @@ def plot_cdist(xyzfile: str, cutoff: float):
     fig = px.imshow(dist)
     fig.show()
 
+def find_min_dists(xyzfile: str) -> list:
+    """
+    Finds the minimum distance between each point in the xyz file
+    """
+    import pandas as pd
+    coords, atoms, indices = from_xyz(xyzfile)
+    dist = cdist(coords, coords)
+    np.fill_diagonal(dist, np.inf)
+
+    #create a pandas dataframe to store 1. the atom pair and 2. the distance between them
+    df = pd.DataFrame(columns=['atom1', 'atom2', 'dist'])
+
+    for i, row in enumerate(dist):
+        min_dist = np.min(row)
+        min_index = np.argmin(row)
+        df.loc[i] = [atoms[i], atoms[min_index], min_dist]
+    
+    #save the dataframe to a csv file
+    df.to_csv('min_dists.csv', index=False)
+
 
 def plot_cdist_sphere(xyzfile: str, samples: int, cutoff: float, radius: float = 2.5):
     """
